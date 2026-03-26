@@ -1,4 +1,4 @@
-import { Control } from 'react-hook-form';
+import { Control, FieldPath } from 'react-hook-form';
 import {
   FormControl,
   FormDescription,
@@ -19,9 +19,22 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { triggerFieldsConfig } from './TriggerFieldsConfig';
 
+type TriggerFormValues = {
+  trigger_name?: string;
+  trigger_type: 'Schedule' | 'Doc Event' | 'Webhook' | 'App Event' | 'Manual';
+  active: boolean;
+  scheduled_interval?: string;
+  interval_count?: string;
+  reference_doctype?: string;
+  doc_event?: string;
+  condition?: string;
+  app_name?: string;
+  event_name?: string;
+};
+
 interface TriggerFieldsRendererProps {
   triggerType: string;
-  control: Control<any>;
+  control: Control<TriggerFormValues>;
   docTypes: Array<{ name: string }>;
   loadingDocTypes: boolean;
   agentId?: string;
@@ -58,7 +71,7 @@ export function TriggerFieldsRenderer({
           <FormField
             key={fieldConfig.field}
             control={control}
-            name={fieldConfig.field}
+            name={fieldConfig.field as FieldPath<TriggerFormValues>}
             render={({ field }) => {
               if (fieldConfig.type === 'select') {
                 // Use Combobox for reference_doctype (searchable)
@@ -67,14 +80,14 @@ export function TriggerFieldsRenderer({
                     value: dt.name,
                     label: dt.name,
                   }));
-
+                
                   return (
                     <FormItem>
                       <FormLabel>{fieldConfig.label}</FormLabel>
                       <FormControl>
                         <Combobox
                           options={comboboxOptions}
-                          value={field.value}
+                          value={typeof field.value === 'string' ? field.value : ''}
                           onValueChange={field.onChange}
                           placeholder={
                             loadingDocTypes
@@ -104,7 +117,7 @@ export function TriggerFieldsRenderer({
                     <FormLabel>{fieldConfig.label}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value}
+                      value={typeof field.value === 'string' ? field.value : ''}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -139,7 +152,7 @@ export function TriggerFieldsRenderer({
                         inputMode={fieldConfig.field === 'interval_count' ? 'numeric' : undefined}
                         placeholder={fieldConfig.placeholder}
                         {...field}
-                        value={field.value || ''}
+                        value={typeof field.value === 'string' ? field.value : ''}
                       />
                     </FormControl>
                     {fieldConfig.description && (
@@ -159,6 +172,7 @@ export function TriggerFieldsRenderer({
                         placeholder={fieldConfig.placeholder}
                         className="font-mono resize-y min-h-[100px]"
                         {...field}
+                        value={typeof field.value === 'string' ? field.value : ''}
                       />
                     </FormControl>
                     {fieldConfig.description && (
