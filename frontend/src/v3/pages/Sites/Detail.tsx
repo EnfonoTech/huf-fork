@@ -20,6 +20,9 @@ type Site = {
   access_mode: string;
   last_healthcheck_at?: string;
   healthcheck_fail_count?: number;
+  migrated_from?: string;
+  migrated_at?: string;
+  previous_host_ip?: string;
 };
 
 type Job = { name: string; job_type: string; status: string; modified: string };
@@ -52,6 +55,13 @@ export default function SiteDetail() {
     "enfono_server_manager.api.site.trigger_healthcheck",
   );
 
+  const rollbackMut = useFrappeMethodMutation<{ doc: Record<string, unknown> }, { name: string }>(
+    "frappe.client.insert",
+  );
+  const enqueueMut = useFrappeMethodMutation<{ docname: string }, unknown>(
+    "enfono_server_manager.enfono_server_manager.doctype.agent_job.agent_job.enqueue_job",
+  );
+
   const tailLogs = useFrappeMethodMutation<{ name: string; lines: number }, { log: string; container: string; error?: string }>(
     "enfono_server_manager.api.site.tail_logs",
   );
@@ -63,6 +73,34 @@ export default function SiteDetail() {
 
   const breadcrumb = <><Link to="/v3/sites" className="hover:underline">Sites</Link> / {site.domain}</>;
 
+  const rollbackEligible = !!site.migrated_from && !!site.migrated_at &&
+    (Date.now() - new Date(site.migrated_at).getTime()) < 14 * 24 * 60 * 60 * 1000 &&
+    site.status !== "rolled_back";
+
+  const doRollback = async () => {
+    if (!confirm(`Rollback migration for ${site.domain}? DNS flips back to v1 within ~2 min.`)) return;
+    const parts = (site.migrated_from || "").split(":");
+    const v1_host_ip = parts[0] || site.previous_host_ip || "";
+    const v1_site_name = parts[1] || site.domain;
+    const res = await rollbackMut.mutateAsync({
+      doc: {
+        doctype: "Agent Job",
+        job_type: "rollback_migration",
+        target_site: site.name,
+        status: "queued",
+        approval_status: "approved",
+        context_json: JSON.stringify({
+          site: site.name,
+          v1_host_ip,
+          v1_site_name,
+          v1_ssh_user: "frappe",
+          v1_bench_path: "/home/frappe/frappe-bench",
+        }),
+      },
+    });
+    await enqueueMut.mutateAsync({ docname: res.name });
+  };
+
   const actions = (
     <div className="flex gap-2">
       <Button
@@ -72,6 +110,15 @@ export default function SiteDetail() {
       >
         {triggerHealthcheck.isPending ? "Checking…" : "Trigger Healthcheck"}
       </Button>
+      {rollbackEligible && (
+        <Button
+          variant="destructive"
+          onClick={doRollback}
+          disabled={rollbackMut.isPending || enqueueMut.isPending}
+        >
+          {rollbackMut.isPending || enqueueMut.isPending ? "Starting…" : "Rollback Migration"}
+        </Button>
+      )}
     </div>
   );
 
