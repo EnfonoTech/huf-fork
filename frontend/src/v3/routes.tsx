@@ -10,6 +10,16 @@ const SiteDetail = lazy(() => import("./pages/Sites/Detail"));
 const JobsList = lazy(() => import("./pages/Jobs/List"));
 const JobDetail = lazy(() => import("./pages/Jobs/Detail"));
 const EventsList = lazy(() => import("./pages/Events/List"));
+// Phase 2 additions
+const CandidatesList = lazy(() => import("./pages/Candidates/List"));
+const CandidateDetail = lazy(() => import("./pages/Candidates/Detail"));
+const ReleaseGroupsList = lazy(() => import("./pages/ReleaseGroups/List"));
+const TemplatesList = lazy(() => import("./pages/Templates/List"));
+const AppSourcesList = lazy(() => import("./pages/AppSources/List"));
+const RunbooksList = lazy(() => import("./pages/Runbooks/List"));
+const NotificationsList = lazy(() => import("./pages/Notifications/List"));
+const CloudflareSettings = lazy(() => import("./pages/Settings/Cloudflare"));
+const WasabiSettings = lazy(() => import("./pages/Settings/Wasabi"));
 
 // V3 owns its own QueryClient so we don't require changes to HUF's App.tsx
 // provider tree. staleTime/gcTime per spec §3.
@@ -44,6 +54,15 @@ export function V3Routes() {
         <Route path="/v3/jobs" element={<JobsList />} />
         <Route path="/v3/jobs/:id" element={<JobDetail />} />
         <Route path="/v3/events" element={<EventsList />} />
+        <Route path="/v3/candidates" element={<CandidatesList />} />
+        <Route path="/v3/candidates/:id" element={<CandidateDetail />} />
+        <Route path="/v3/release-groups" element={<ReleaseGroupsList />} />
+        <Route path="/v3/templates" element={<TemplatesList />} />
+        <Route path="/v3/app-sources" element={<AppSourcesList />} />
+        <Route path="/v3/runbooks" element={<RunbooksList />} />
+        <Route path="/v3/notifications" element={<NotificationsList />} />
+        <Route path="/v3/settings/cloudflare" element={<CloudflareSettings />} />
+        <Route path="/v3/settings/wasabi" element={<WasabiSettings />} />
       </Routes>
     </QueryClientProvider>
   );

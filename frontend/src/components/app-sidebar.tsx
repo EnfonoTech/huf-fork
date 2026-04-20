@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Home, Bot, Workflow, Database, Plug, MessageSquare, Zap, Server, ScrollText, Users, BookOpen,
-  LayoutDashboard, Server as ServerIcon, Globe, ListChecks, AlertCircle } from "lucide-react"
+  LayoutDashboard, Server as ServerIcon, Globe, ListChecks, AlertCircle,
+  Package, GitBranch, Layers, GitFork, Book, Bell, Cloud, HardDrive } from "lucide-react"
 import { useLocation } from "react-router-dom"
 
 import { NavMain } from "@/components/nav-main"
@@ -29,6 +30,17 @@ const allNavItems = [
   { title: "Sites", url: "/v3/sites", icon: Globe, capability: null },
   { title: "Agent Jobs", url: "/v3/jobs", icon: ListChecks, capability: null },
   { title: "System Events", url: "/v3/events", icon: AlertCircle, capability: null },
+  // Phase 2 — Build & Deploy
+  { title: "Deploy Candidates", url: "/v3/candidates", icon: Package, capability: null },
+  { title: "Release Groups", url: "/v3/release-groups", icon: GitBranch, capability: null },
+  { title: "Bench Templates", url: "/v3/templates", icon: Layers, capability: null },
+  { title: "App Sources", url: "/v3/app-sources", icon: GitFork, capability: null },
+  // Phase 2 — Ops
+  { title: "Runbooks", url: "/v3/runbooks", icon: Book, capability: null },
+  { title: "Notifications", url: "/v3/notifications", icon: Bell, capability: null },
+  // Phase 2 — Settings
+  { title: "Cloudflare", url: "/v3/settings/cloudflare", icon: Cloud, capability: null },
+  { title: "Wasabi", url: "/v3/settings/wasabi", icon: HardDrive, capability: null },
   {
     title: "Dashboard",
     url: "/",
