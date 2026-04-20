@@ -3,11 +3,13 @@ import { useParams, Link } from "react-router-dom";
 import { useFrappeDoc } from "../../hooks/useFrappeDoc";
 import { useFrappeList } from "../../hooks/useFrappeList";
 import { useRealtime } from "../../hooks/useRealtime";
+import { useFrappeMethodMutation } from "../../hooks/useFrappeMethod";
 import { TabbedDetail } from "../../layouts/TabbedDetail";
 import { StatusBadge } from "../../components/StatusBadge";
 import { StepRunner, type Step } from "../../components/StepRunner";
 import { SkeletonRows } from "../../components/SkeletonRows";
 import { ErrorFallback } from "../../components/ErrorFallback";
+import { Button } from "@/components/ui/button";
 
 type Job = {
   name: string;
@@ -102,6 +104,13 @@ export default function JobDetail() {
     });
   }, [steps.data, liveSteps]);
 
+  const retryMut = useFrappeMethodMutation<{ name: string }, { name: string; status: string }>(
+    "enfono_server_manager.api.agent_job.retry",
+  );
+  const cancelMut = useFrappeMethodMutation<{ name: string }, { name: string; status: string }>(
+    "enfono_server_manager.api.agent_job.cancel",
+  );
+
   if (isLoading) return <SkeletonRows rows={6} cols={2} />;
   if (error || !job) {
     return (
@@ -143,7 +152,31 @@ export default function JobDetail() {
       breadcrumb={breadcrumb}
       title={job.job_type}
       subtitle={id}
-      actions={<StatusBadge status={job.status} />}
+      actions={
+        <div className="flex items-center gap-2">
+          <StatusBadge status={job.status} />
+          {["failed", "cancelled"].includes(job.status) && id && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => retryMut.mutate({ name: id })}
+              disabled={retryMut.isPending}
+            >
+              {retryMut.isPending ? "Retrying…" : "Retry"}
+            </Button>
+          )}
+          {["running", "pending", "queued"].includes(job.status) && id && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => cancelMut.mutate({ name: id })}
+              disabled={cancelMut.isPending}
+            >
+              {cancelMut.isPending ? "Cancelling…" : "Cancel"}
+            </Button>
+          )}
+        </div>
+      }
       tabs={[
         { value: "steps", label: "Steps", content: stepsTab },
         { value: "context", label: "Context", content: contextTab },
