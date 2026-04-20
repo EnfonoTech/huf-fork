@@ -20,6 +20,9 @@ const RunbooksList = lazy(() => import("./pages/Runbooks/List"));
 const NotificationsList = lazy(() => import("./pages/Notifications/List"));
 const CloudflareSettings = lazy(() => import("./pages/Settings/Cloudflare"));
 const WasabiSettings = lazy(() => import("./pages/Settings/Wasabi"));
+// Phase 3
+const NewSiteWizard = lazy(() => import("./pages/Sites/Wizard"));
+const OpsCommandCenter = lazy(() => import("./pages/Ops"));
 
 // V3 owns its own QueryClient so we don't require changes to HUF's App.tsx
 // provider tree. staleTime/gcTime per spec §3.
@@ -47,9 +50,11 @@ export function V3Routes() {
     <QueryClientProvider client={v3QueryClient}>
       <Routes>
         <Route path="/v3" element={<Dashboard />} />
+        <Route path="/v3/ops" element={<OpsCommandCenter />} />
         <Route path="/v3/servers" element={<ServersList />} />
         <Route path="/v3/servers/:id" element={<ServerDetail />} />
         <Route path="/v3/sites" element={<SitesList />} />
+        <Route path="/v3/sites/new" element={<NewSiteWizard />} />
         <Route path="/v3/sites/:id" element={<SiteDetail />} />
         <Route path="/v3/jobs" element={<JobsList />} />
         <Route path="/v3/jobs/:id" element={<JobDetail />} />
