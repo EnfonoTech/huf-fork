@@ -20,6 +20,8 @@ import { DataTableViewWrapper } from './pages/DataTableViewWrapper';
 import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 
+import { V3Routes } from './v3/routes';
+
 const HomePage = lazy(() => import('./pages/HomePage'));
 const AgentsPage = lazy(() => import('./pages/AgentsPage'));
 const AgentFormPageWrapper = lazy(() => import('./pages/AgentFormPageWrapper'));
@@ -115,6 +117,7 @@ function App() {
         <PermissionsProvider>
         <Suspense fallback={<AuthenticatingPage />}>
           <Routes>
+          <Route path="/v3/*" element={<V3Routes />} />
           <Route
             path="/"
             element={
