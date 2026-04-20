@@ -1,5 +1,6 @@
 import * as React from "react"
-import { Home, Bot, Workflow, Database, Plug, MessageSquare, Zap, Server, ScrollText, Users, BookOpen } from "lucide-react"
+import { Home, Bot, Workflow, Database, Plug, MessageSquare, Zap, Server, ScrollText, Users, BookOpen,
+  LayoutDashboard, Server as ServerIcon, Globe, ListChecks, AlertCircle } from "lucide-react"
 import { useLocation } from "react-router-dom"
 
 import { NavMain } from "@/components/nav-main"
@@ -22,6 +23,12 @@ import {
  * Items with capability === null are always visible (e.g. Dashboard).
  */
 const allNavItems = [
+  // v3 Operations section
+  { title: "Fleet Dashboard", url: "/v3", icon: LayoutDashboard, capability: null },
+  { title: "Servers", url: "/v3/servers", icon: ServerIcon, capability: null },
+  { title: "Sites", url: "/v3/sites", icon: Globe, capability: null },
+  { title: "Agent Jobs", url: "/v3/jobs", icon: ListChecks, capability: null },
+  { title: "System Events", url: "/v3/events", icon: AlertCircle, capability: null },
   {
     title: "Dashboard",
     url: "/",
