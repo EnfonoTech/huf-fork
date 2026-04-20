@@ -13,6 +13,9 @@ type FleetSummary = {
   jobs_running: number;
   jobs_failed_24h: number;
   events_critical_24h: number;
+  migrated_sites?: number;
+  rolled_back_sites?: number;
+  migrations_in_window?: number;
   jobs_histogram_7d: Histogram[];
 };
 
@@ -48,6 +51,12 @@ export default function Dashboard() {
             tone={data.jobs_failed_24h > 0 ? "warn" : "default"} />
       <Tile label="Critical events (24h)"  value={data.events_critical_24h} to="/v3/events?level=critical"
             tone={data.events_critical_24h > 0 ? "danger" : "default"} />
+      <Tile
+        label="Migrations (14d window)"
+        value={data.migrations_in_window ?? 0}
+        hint={`${data.migrated_sites ?? 0} total · ${data.rolled_back_sites ?? 0} rolled back`}
+        to="/v3/migrations"
+      />
     </>
   );
 

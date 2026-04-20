@@ -2,7 +2,7 @@ import * as React from "react"
 import { Home, Bot, Workflow, Database, Plug, MessageSquare, Zap, Server, ScrollText, Users, BookOpen,
   LayoutDashboard, Server as ServerIcon, Globe, ListChecks, AlertCircle,
   Package, GitBranch, Layers, GitFork, Book, Bell, Cloud, HardDrive,
-  Activity, Plus } from "lucide-react"
+  Activity, Plus, ArrowRightLeft } from "lucide-react"
 import { useLocation } from "react-router-dom"
 
 import { NavMain } from "@/components/nav-main"
@@ -29,6 +29,7 @@ const allNavItems = [
   { title: "Fleet Dashboard", url: "/v3", icon: LayoutDashboard, capability: null },
   { title: "Command Center", url: "/v3/ops", icon: Activity, capability: null },
   { title: "New Site…", url: "/v3/sites/new", icon: Plus, capability: null },
+  { title: "Migrations", url: "/v3/migrations", icon: ArrowRightLeft, capability: null },
   { title: "Servers", url: "/v3/servers", icon: ServerIcon, capability: null },
   { title: "Sites", url: "/v3/sites", icon: Globe, capability: null },
   { title: "Agent Jobs", url: "/v3/jobs", icon: ListChecks, capability: null },

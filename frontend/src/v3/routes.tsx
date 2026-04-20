@@ -23,6 +23,9 @@ const WasabiSettings = lazy(() => import("./pages/Settings/Wasabi"));
 // Phase 3
 const NewSiteWizard = lazy(() => import("./pages/Sites/Wizard"));
 const OpsCommandCenter = lazy(() => import("./pages/Ops"));
+// Phase 4
+const MigrationWizard = lazy(() => import("./pages/Sites/MigrationWizard"));
+const MigrationsList = lazy(() => import("./pages/Migrations/List"));
 
 // V3 owns its own QueryClient so we don't require changes to HUF's App.tsx
 // provider tree. staleTime/gcTime per spec §3.
@@ -55,6 +58,8 @@ export function V3Routes() {
         <Route path="/v3/servers/:id" element={<ServerDetail />} />
         <Route path="/v3/sites" element={<SitesList />} />
         <Route path="/v3/sites/new" element={<NewSiteWizard />} />
+        <Route path="/v3/sites/migrate" element={<MigrationWizard />} />
+        <Route path="/v3/migrations" element={<MigrationsList />} />
         <Route path="/v3/sites/:id" element={<SiteDetail />} />
         <Route path="/v3/jobs" element={<JobsList />} />
         <Route path="/v3/jobs/:id" element={<JobDetail />} />
