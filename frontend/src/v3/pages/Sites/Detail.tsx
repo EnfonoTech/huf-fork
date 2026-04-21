@@ -4,6 +4,7 @@ import { useFrappeDoc } from "../../hooks/useFrappeDoc";
 import { useFrappeList } from "../../hooks/useFrappeList";
 import { useRealtime } from "../../hooks/useRealtime";
 import { useFrappeMethodMutation } from "../../hooks/useFrappeMethod";
+import { useFrappeMethodQuery } from "../../hooks/useFrappeMethodQuery";
 import { TabbedDetail } from "../../layouts/TabbedDetail";
 import { StatusBadge } from "../../components/StatusBadge";
 import { SkeletonRows } from "../../components/SkeletonRows";
@@ -65,6 +66,33 @@ export default function SiteDetail() {
   const tailLogs = useFrappeMethodMutation<{ name: string; lines: number }, { log: string; container: string; error?: string }>(
     "enfono_server_manager.api.site.tail_logs",
   );
+
+  type ExecResp = { ok: boolean; stdout: string; stderr: string };
+  type AppsResp = { installed: string[]; available_in_image: string[] };
+  const appsQ = useFrappeMethodQuery<AppsResp>(
+    "enfono_server_manager.api.site.list_installed_apps",
+    { name: id ?? "" },
+    { enabled: !!id, refetchInterval: 30_000 },
+  );
+  const installApp = useFrappeMethodMutation<{ name: string; app_name: string }, ExecResp>(
+    "enfono_server_manager.api.site.install_app",
+  );
+  const clearCache = useFrappeMethodMutation<{ name: string }, ExecResp>(
+    "enfono_server_manager.api.site.clear_cache",
+  );
+  const runMigrate = useFrappeMethodMutation<{ name: string }, ExecResp>(
+    "enfono_server_manager.api.site.run_migrate",
+  );
+  const setMaint = useFrappeMethodMutation<{ name: string; enabled: number }, ExecResp>(
+    "enfono_server_manager.api.site.set_maintenance_mode",
+  );
+  const restart = useFrappeMethodMutation<{ name: string }, ExecResp>(
+    "enfono_server_manager.api.site.restart_containers",
+  );
+  const backupNow = useFrappeMethodMutation<{ name: string; with_files: number }, ExecResp>(
+    "enfono_server_manager.api.site.backup_now",
+  );
+  const [opOut, setOpOut] = useState<string | null>(null);
 
   if (isLoading) return <SkeletonRows rows={4} cols={2} />;
   if (error || !site) {
@@ -241,6 +269,77 @@ export default function SiteDetail() {
       actions={actions}
       tabs={[
         { value: "health", label: "Health", content: health },
+        {
+          value: "apps",
+          label: "Apps",
+          content: (
+            <div className="space-y-4">
+              {appsQ.isLoading && <SkeletonRows rows={3} cols={1} />}
+              {appsQ.data && (
+                <>
+                  <div>
+                    <h4 className="mb-2 text-sm font-semibold">Installed on site</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {appsQ.data.installed.map((a) => (
+                        <span key={a} className="rounded-md border bg-muted px-2 py-1 font-mono text-xs">{a}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="mb-2 text-sm font-semibold">Available in image (not yet installed)</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {appsQ.data.available_in_image
+                        .filter((a) => !appsQ.data!.installed.includes(a))
+                        .map((a) => (
+                          <div key={a} className="flex items-center gap-2 rounded-md border p-2">
+                            <span className="font-mono text-xs">{a}</span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={installApp.isPending}
+                              onClick={() =>
+                                installApp.mutate(
+                                  { name: site.name, app_name: a },
+                                  { onSuccess: (r) => { setOpOut(r.stdout || r.stderr); void appsQ.refetch(); } },
+                                )
+                              }
+                            >
+                              {installApp.isPending ? "Installing…" : "Install"}
+                            </Button>
+                          </div>
+                        ))}
+                      {appsQ.data.available_in_image.filter((a) => !appsQ.data!.installed.includes(a)).length === 0 && (
+                        <span className="text-xs text-muted-foreground">All shipped apps are installed. Upgrade site to a DC with more apps to add new ones.</span>
+                      )}
+                    </div>
+                  </div>
+                  {opOut && (
+                    <pre className="max-h-60 overflow-auto rounded bg-zinc-950 p-3 font-mono text-xs text-zinc-50">{opOut}</pre>
+                  )}
+                </>
+              )}
+            </div>
+          ),
+        },
+        {
+          value: "ops",
+          label: "Ops",
+          content: (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => clearCache.mutate({ name: site.name }, { onSuccess: (r) => setOpOut(r.stdout || r.stderr) })} disabled={clearCache.isPending}>{clearCache.isPending ? "…" : "Clear Cache"}</Button>
+                <Button variant="outline" onClick={() => runMigrate.mutate({ name: site.name }, { onSuccess: (r) => setOpOut(r.stdout || r.stderr) })} disabled={runMigrate.isPending}>{runMigrate.isPending ? "…" : "bench migrate"}</Button>
+                <Button variant="outline" onClick={() => restart.mutate({ name: site.name }, { onSuccess: (r) => setOpOut(r.stdout || r.stderr) })} disabled={restart.isPending}>{restart.isPending ? "…" : "Restart Containers"}</Button>
+                <Button variant="outline" onClick={() => backupNow.mutate({ name: site.name, with_files: 1 }, { onSuccess: (r) => setOpOut(r.stdout || r.stderr) })} disabled={backupNow.isPending}>{backupNow.isPending ? "…" : "Backup Now"}</Button>
+                <Button variant="outline" onClick={() => setMaint.mutate({ name: site.name, enabled: 1 }, { onSuccess: (r) => setOpOut(r.stdout || r.stderr) })} disabled={setMaint.isPending}>Maintenance ON</Button>
+                <Button variant="outline" onClick={() => setMaint.mutate({ name: site.name, enabled: 0 }, { onSuccess: (r) => setOpOut(r.stdout || r.stderr) })} disabled={setMaint.isPending}>Maintenance OFF</Button>
+              </div>
+              {opOut && (
+                <pre className="max-h-80 overflow-auto rounded bg-zinc-950 p-3 font-mono text-xs text-zinc-50">{opOut}</pre>
+              )}
+            </div>
+          ),
+        },
         { value: "jobs", label: "Jobs", content: jobsTab },
         { value: "backups", label: "Backups", content: backupsTab },
         { value: "logs", label: "Logs", content: logsTab },
