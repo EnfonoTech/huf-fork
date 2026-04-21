@@ -8,6 +8,7 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { SkeletonRows } from "../../components/SkeletonRows";
 import { ErrorFallback } from "../../components/ErrorFallback";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 type Server = {
   server_name: string;
@@ -47,6 +48,7 @@ export default function ServersList() {
   return (
     <ListLayout
       title="Servers"
+      actions={<Button asChild><a href="/app/frappe-server/new">+ New Server</a></Button>}
       filters={<FilterChips label="Status" options={STATUS_OPTIONS} value={status} onChange={setStatus} />}
       search={<Input placeholder="Search by name…" value={q} onChange={(e) => setQ(e.target.value)} className="w-64" />}
     >

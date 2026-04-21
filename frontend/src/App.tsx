@@ -117,7 +117,18 @@ function App() {
         <PermissionsProvider>
         <Suspense fallback={<AuthenticatingPage />}>
           <Routes>
-          <Route path="/v3/*" element={<V3Routes />} />
+          <Route
+            path="/v3/*"
+            element={
+              <ProtectedRoute>
+                <UnifiedLayout>
+                  <Suspense fallback={<PageLoader />}>
+                    <V3Routes />
+                  </Suspense>
+                </UnifiedLayout>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/"
             element={
