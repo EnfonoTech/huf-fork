@@ -52,7 +52,10 @@ export default function NewSiteWizard() {
   const [submitting, setSubmitting] = useState(false);
 
   const canProceed = () => {
-    if (s.step === 1) return !!(s.site_id && s.domain && s.server);
+    if (s.step === 1) {
+      const domainOk = /^[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+\.[a-z]{2,}$/.test(s.domain);
+      return !!(s.site_id && domainOk && s.server);
+    }
     if (s.step === 2) return !!s.deploy_candidate;
     if (s.step === 3) return !!(s.admin_password && s.db_password);
     return true;
@@ -68,13 +71,18 @@ export default function NewSiteWizard() {
           placeholder="acme.fateherp.com"
           value={s.domain}
           onChange={(e) => {
-            s.setField("domain", e.target.value);
-            // auto-derive site_id from subdomain if not set manually
+            s.setField("domain", e.target.value.toLowerCase().trim());
             if (!s.site_id || s.site_id === s.domain.split(".")[0]) {
-              s.setField("site_id", e.target.value.split(".")[0] || "");
+              s.setField("site_id", e.target.value.split(".")[0]?.toLowerCase().replace(/[^a-z0-9-]/g, "") || "");
             }
           }}
         />
+        <p className="mt-1 text-xs text-muted-foreground">
+          Full FQDN. Must include <code>.fateherp.com</code> (or any zone in Cloudflare Settings).
+          {s.domain && !/^[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+\.[a-z]{2,}$/.test(s.domain) && (
+            <span className="ml-2 text-red-600">Invalid FQDN</span>
+          )}
+        </p>
       </div>
       <div>
         <Label htmlFor="w-sid">Site ID</Label>
