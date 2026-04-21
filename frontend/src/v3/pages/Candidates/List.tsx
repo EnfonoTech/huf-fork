@@ -7,6 +7,7 @@ import { FilterChips } from "../../components/FilterChips";
 import { StatusBadge } from "../../components/StatusBadge";
 import { SkeletonRows } from "../../components/SkeletonRows";
 import { ErrorFallback } from "../../components/ErrorFallback";
+import { Button } from "@/components/ui/button";
 
 type Candidate = {
   name: string;
@@ -46,6 +47,7 @@ export default function CandidatesList() {
   return (
     <ListLayout
       title="Deploy Candidates"
+      actions={<Button asChild><a href="/app/deploy-candidate/new">+ New Candidate</a></Button>}
       filters={<FilterChips label="Status" options={STATUS_OPTIONS} value={status} onChange={setStatus} />}
     >
       {isLoading && <SkeletonRows rows={8} cols={5} />}
