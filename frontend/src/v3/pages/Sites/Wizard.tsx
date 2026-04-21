@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useWizard, genPassword } from "./wizardStore";
 import { useFrappeList } from "../../hooks/useFrappeList";
 import { useFrappeDoc } from "../../hooks/useFrappeDoc";
+import { useFrappeMethodQuery } from "../../hooks/useFrappeMethod";
 import { useRealtime } from "../../hooks/useRealtime";
 import { callMethod } from "../../api/client";
 import { WizardLayout } from "../../layouts/WizardLayout";
@@ -17,6 +18,53 @@ import { Badge } from "@/components/ui/badge";
 import type { WizardState } from "./wizardStore";
 
 const STEP_LABELS = ["Identity", "Candidate", "Credentials", "Review"];
+
+function DomainPicker({ domain, setDomain }: { domain: string; setDomain: (d: string) => void }) {
+  const zones = useFrappeMethodQuery<{ zones: string[] }>(
+    "enfono_server_manager.api.cloudflare.list_zones",
+  );
+  const zoneList = zones.data?.zones ?? [];
+  const currentZone = zoneList.find((z) => domain.endsWith("." + z) || domain === z) || zoneList[0] || "";
+  const currentSub = currentZone && domain.endsWith("." + currentZone)
+    ? domain.slice(0, -(currentZone.length + 1))
+    : "";
+
+  const update = (sub: string, zone: string) => {
+    const cleanSub = sub.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    setDomain(cleanSub && zone ? `${cleanSub}.${zone}` : "");
+  };
+
+  return (
+    <div className="col-span-2 space-y-2">
+      <Label htmlFor="w-sub">Domain</Label>
+      <div className="flex items-center gap-2">
+        <Input
+          id="w-sub"
+          placeholder="acme"
+          value={currentSub}
+          onChange={(e) => update(e.target.value, currentZone)}
+          className="flex-1"
+        />
+        <span className="text-muted-foreground">.</span>
+        {zoneList.length === 0 ? (
+          <span className="text-xs text-red-600">No zones in Cloudflare Settings — add hostnames first</span>
+        ) : (
+          <select
+            className="rounded-md border bg-background px-3 py-2 text-sm"
+            value={currentZone}
+            onChange={(e) => update(currentSub, e.target.value)}
+          >
+            {zoneList.map((z) => (<option key={z} value={z}>{z}</option>))}
+          </select>
+        )}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Final FQDN: <code className="font-mono">{domain || `<sub>.${currentZone || "<zone>"}`}</code>
+        {zoneList.length > 1 && " — pick any zone you manage in Cloudflare"}
+      </p>
+    </div>
+  );
+}
 
 type ServerRow = { name: string; server_name: string; status: string; region: string; mode: string };
 type CandidateRow = { name: string; template: string; status: string; image_tag: string | null; built_at: string | null };
@@ -64,26 +112,16 @@ export default function NewSiteWizard() {
   // --- STEP 1 — Identity ---
   const step1 = (
     <div className="grid grid-cols-2 gap-4">
-      <div className="col-span-2">
-        <Label htmlFor="w-domain">Domain</Label>
-        <Input
-          id="w-domain"
-          placeholder="acme.fateherp.com"
-          value={s.domain}
-          onChange={(e) => {
-            s.setField("domain", e.target.value.toLowerCase().trim());
-            if (!s.site_id || s.site_id === s.domain.split(".")[0]) {
-              s.setField("site_id", e.target.value.split(".")[0]?.toLowerCase().replace(/[^a-z0-9-]/g, "") || "");
-            }
-          }}
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Full FQDN. Must include <code>.fateherp.com</code> (or any zone in Cloudflare Settings).
-          {s.domain && !/^[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+\.[a-z]{2,}$/.test(s.domain) && (
-            <span className="ml-2 text-red-600">Invalid FQDN</span>
-          )}
-        </p>
-      </div>
+      <DomainPicker
+        domain={s.domain}
+        setDomain={(d) => {
+          s.setField("domain", d);
+          const sub = d.split(".")[0] || "";
+          if (!s.site_id || sub !== s.site_id) {
+            s.setField("site_id", sub.replace(/[^a-z0-9-]/g, ""));
+          }
+        }}
+      />
       <div>
         <Label htmlFor="w-sid">Site ID</Label>
         <Input
