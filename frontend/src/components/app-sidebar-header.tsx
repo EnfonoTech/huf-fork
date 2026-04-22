@@ -15,8 +15,8 @@ export function AppSidebarHeader() {
             <Zap className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">HufAI</span>
-            <span className="truncate text-xs text-muted-foreground">AI Platform</span>
+            <span className="truncate font-semibold">Fateh AI</span>
+            <span className="truncate text-xs text-muted-foreground">Server Manager</span>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
